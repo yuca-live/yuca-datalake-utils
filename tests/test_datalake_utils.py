@@ -1,4 +1,4 @@
-from yuca_data_lake_utils.DataLakeUtils import DataLakeUtils
+from datalake_utils.datalake_utils import DataLakeUtils
 import json
 
 data = [
