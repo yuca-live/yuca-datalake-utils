@@ -25,10 +25,6 @@ s3 = DataLake(
     table="cars",
     partitions=[
         {
-            "key": "logical_date",
-            "value": "2022-01-01"
-        },
-        {
             "key": "decade",
             "value": "1960s"
         }

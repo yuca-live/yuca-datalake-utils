@@ -7,7 +7,7 @@ setup(
     name='datalake_utils',
     version='1.0.4',
     description="Manipulate data on Amazon S3 using Apache Hadoop filesystem compability",
-    packages=["utils"],
+    packages=["datalake_utils"],
     install_requires=['boto3'],
     # package_dir={'': 'datalake_utils'},
     # extras_require={
@@ -27,6 +27,6 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Luis Roberto de Oliveira Moro",
-    # author_email="vaidhyanathan.sm@gmail.com",
-    # url="https://github.com/smv1999/number-utility"
+    author_email="luis.moro@yuca.live",
+    url="https://github.com/yuca-live/yuca-datalake-utils"
 )
