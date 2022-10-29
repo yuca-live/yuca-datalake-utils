@@ -10,8 +10,7 @@ import uuid
 
 logging.basicConfig(level=logging.INFO)
 
-
-class DataLakeUtils():
+class DataLake():
     """
     Data Lake Utils
     This class instanciates an object to handle read/write operations on an 
@@ -27,7 +26,7 @@ class DataLakeUtils():
     .
     """
 
-    def __init__(self, bucket_name: str, schema: str, table: str, partitions: list):
+    def __init__(self, bucket_name: str, schema: str, table: str, partitions: list, profile_name : str = None):
         """
         Constructor method
 
@@ -37,7 +36,11 @@ class DataLakeUtils():
         :partitions: list of key/value pairs of partitions to be used
         :return: void
         """
-        self.session = boto3.Session(profile_name="yuca-data-development")
+        if profile_name is None:
+            self.session = boto3.Session()
+        else:
+            self.session = boto3.Session(profile_name=profile_name)
+            
         self.bucket_name = bucket_name
         self.schema = schema
         self.table = table

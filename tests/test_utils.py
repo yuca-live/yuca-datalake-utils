@@ -1,4 +1,4 @@
-from datalake_utils.datalake_utils import DataLakeUtils
+from datalake_utils.utils import DataLake
 import json
 
 data = [
@@ -19,7 +19,7 @@ data = [
     }
 ]
 
-s3 = DataLakeUtils(
+s3 = DataLake(
     bucket_name="yuca-data-development-landing-zone",
     schema="motor_vehicles",
     table="cars",

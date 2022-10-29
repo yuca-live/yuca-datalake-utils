@@ -1,21 +1,22 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='datalake_utils',
-    version='1.0.0',
+    version='1.0.4',
     description="Manipulate data on Amazon S3 using Apache Hadoop filesystem compability",
-    py_modules=["datalake_utils"],
-    package_dir={'': 'datalake_utils'},
-    extras_require={
-        "dev": [
-            "pytest >= 3.7",
-            "check-manifest",
-            "twine"
-        ]
-    },
+    packages=["utils"],
+    install_requires=['boto3'],
+    # package_dir={'': 'datalake_utils'},
+    # extras_require={
+    #     "dev": [
+    #         "pytest >= 3.7",
+    #         "check-manifest",
+    #         "twine"
+    #     ]
+    # },
     classifiers=[
         "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Libraries :: Python Modules",
