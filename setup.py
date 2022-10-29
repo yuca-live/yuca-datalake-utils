@@ -9,14 +9,6 @@ setup(
     description="Manipulate data on Amazon S3 using Apache Hadoop filesystem compability",
     packages=["datalake_utils"],
     install_requires=['boto3'],
-    # package_dir={'': 'datalake_utils'},
-    # extras_require={
-    #     "dev": [
-    #         "pytest >= 3.7",
-    #         "check-manifest",
-    #         "twine"
-    #     ]
-    # },
     classifiers=[
         "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Libraries :: Python Modules",
