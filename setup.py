@@ -1,11 +1,20 @@
-from setuptools import setup, find_packages
+# To publish into PyPi
+# On a virtual environment:
+# pip install -U wheel setuptools
+# python -m setup sdist bdist_wheel
+# check-manifest -c
+# twine upload dist/*
+#   username: __token__
+#   password: <your_token_here>
+
+from setuptools import setup
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name='datalake_utils',
-    version='1.1.0',
+    version='1.2.0',
     description="Manipulate data on Amazon S3 using Apache Hadoop filesystem compability",
     packages=["datalake_utils"],
     install_requires=['boto3'],
