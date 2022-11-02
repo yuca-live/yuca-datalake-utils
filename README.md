@@ -1,6 +1,8 @@
 # Data Lake Utility
 Package to manipulate data from/into Amazon S3 using partitions compatible with Apache Hadoop filesystem.
 At this moment, this package was conceived to handle JSON data only. That being said, it expects a list of dictionaries.
+
+Data will be written into Amazon S3 as a multi-line JSON string, compressed as GZIP.
 ## Features
 Convert list of dictionaries...
 ```python
@@ -41,7 +43,7 @@ The example below will assume the following file structure:
 motor_vehicles/
 `-- cars
     `-- decade=1960s
-        `-- 2c0fea6c-444e-11ed-969f-acde48001122.json
+        `-- 2c0fea6c-444e-11ed-969f-acde48001122.json.gzip
 ```
 
 ```python

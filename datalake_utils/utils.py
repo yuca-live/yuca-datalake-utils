@@ -2,6 +2,7 @@ import json
 import sys
 import boto3
 import logging
+import gzip
 
 # from pathlib import Path
 # import shutil
@@ -65,7 +66,7 @@ class DataLake():
             logging.info("NO DATA TO BE INSERTED")
             return
         
-        object_name = self.object_name_prefix + str(uuid.uuid1()) + ".json"
+        object_name = self.object_name_prefix + str(uuid.uuid1()) + ".json.gzip"
         
         data = "\n".join(json.dumps(item) for item in data)
         
@@ -75,7 +76,7 @@ class DataLake():
             s3.put_object(
                 Bucket=self.bucket_name,
                 Key=object_name,
-                Body=bytes(data, "utf-8")
+                Body=gzip.compress(bytes(data, "utf-8"))
                 )
         except:
             raise
@@ -127,7 +128,8 @@ class DataLake():
                     content = s3.get_object(
                         Bucket=self.bucket_name,
                         Key=object.get('Key'))
-                    content = content['Body'].read().splitlines()
+                    # content = content['Body'].read().splitlines()
+                    content = gzip.decompress(content['Body'].read()).splitlines()
                     
                     for line in content:
                         data += (json.loads(line.decode("utf-8")),)
