@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='datalake_utils',
-    version='1.0.4',
+    version='1.1.0',
     description="Manipulate data on Amazon S3 using Apache Hadoop filesystem compability",
     packages=["datalake_utils"],
     install_requires=['boto3'],
