@@ -1,6 +1,6 @@
 # Data Lake Utility
 Package to manipulate data from/into Amazon S3 using partitions compatible with Apache Hadoop filesystem.
-At this moment, this package was conceived to handle JSON data only. That being said, it expects a list of dictionaries.
+At this moment, this package was conceived to handle JSON and Parquet formats. That being said, it expects a Pandas DataFrame.
 
 Data will be written into Amazon S3 as a multi-line JSON string, compressed as GZIP.
 ## Features
@@ -48,7 +48,7 @@ motor_vehicles/
 
 ```python
 from datalake_utils.utils import DataLake
-import json
+import pandas
 
 data = [
     {
@@ -80,10 +80,10 @@ datalake = DataLake(
     ],
 )
 
-datalake.append_to_s3(data)
+datalake.append_to_s3(data=pandas.DataFrame(data), file_format="json")
 
-retrieved_data = datalake.read_from_s3()
-print(json.dumps(retrieved_data, indent=4))
+retrieved_data = datalake.read_from_s3(file_format="json")
+print(retrieved_data)
 
 datalake.delete_from_s3()
 

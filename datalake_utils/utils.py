@@ -1,15 +1,11 @@
-import json
-import sys
-import boto3
 import logging
-import gzip
-
-# from pathlib import Path
-# import shutil
-# import sys
-import uuid
-
 logging.basicConfig(level=logging.INFO)
+
+import sys
+import pathlib
+import boto3
+import pandas
+import uuid
 
 class DataLake():
     """
@@ -27,7 +23,7 @@ class DataLake():
     .
     """
 
-    def __init__(self, bucket_name: str, schema: str, table: str, partitions: list, profile_name : str = None):
+    def __init__(self, bucket_name: str, schema: str, table: str, partitions: list, profile_name: str = None):
         """
         Constructor method
 
@@ -35,13 +31,14 @@ class DataLake():
         :schema: name of schema
         :table: name of table
         :partitions: list of key/value pairs of partitions to be used
+        :profile_name: name of AWS Credentials profile to be used
         :return: void
         """
         if profile_name is None:
             self.session = boto3.Session()
         else:
             self.session = boto3.Session(profile_name=profile_name)
-            
+
         self.bucket_name = bucket_name
         self.schema = schema
         self.table = table
@@ -49,41 +46,60 @@ class DataLake():
         self.object_name_prefix = self.__concat_object_name_prefix()
 
     def __concat_object_name_prefix(self):
-        object_partitions = "/".join("{0}={1}".format(
-            partition["key"], partition["value"]) for partition in self.partitions)
-        object_name_prefix = "{0}/{1}/{2}/".format(
-            self.schema,
-            self.table,
-            object_partitions
+        object_partitions = "/".join("{partition}={value}".format(
+            partition=partition["key"],
+            value=partition["value"]
+        ) for partition in self.partitions
+        )
+        object_name_prefix = "{schema}/{table}/{object_partitions}/".format(
+            schema=self.schema,
+            table=self.table,
+            object_partitions=object_partitions
         )
         # Object name returned already has a slash '/' at the end of string
         return object_name_prefix
 
-    def append_to_s3(self, data):
+    def append_to_s3(self, data: pandas.DataFrame, file_format: str):
         insert_count = len(data)
-        
-        if insert_count == 0:
-            logging.info("NO DATA TO BE INSERTED")
-            return
-        
-        object_name = self.object_name_prefix + str(uuid.uuid1()) + ".json.gzip"
-        
-        data = "\n".join(json.dumps(item) for item in data)
-        
-        logging.info("INSERTING DATA INTO S3...")
-        try:
-            s3 = self.session.client('s3')
-            s3.put_object(
-                Bucket=self.bucket_name,
-                Key=object_name,
-                Body=gzip.compress(bytes(data, "utf-8"))
+        if insert_count > 0:
+            logging.info("INSERTING DATA INTO S3...")
+            if file_format == "json":
+                object_name = self.object_name_prefix + \
+                    str(uuid.uuid1()) + ".json.gz"
+                data.to_json(
+                    path_or_buf="s3://{bucket_name}/{object_name}".format(
+                        bucket_name=self.bucket_name,
+                        object_name=object_name,
+                    ),
+                    orient="records",
+                    lines=True,
+                    compression="gzip",
+                    storage_options=None if self.session.profile_name is None else {
+                        "profile": self.session.profile_name}
                 )
-        except:
-            raise
-        else:
+            elif file_format == "parquet":
+                object_name = self.object_name_prefix + \
+                    str(uuid.uuid1()) + ".parquet.gz"
+                data.to_parquet(
+                    path="s3://{bucket_name}/{object_name}".format(
+                        bucket_name=self.bucket_name,
+                        object_name=object_name,
+                    ),
+                    compression='gzip',
+                    storage_options=None if self.session.profile_name is None else {
+                        "profile": self.session.profile_name}
+                )
+            else:
+                logging.error("FILE FORMAT {file_format} NOT SUPPORTED".format(
+                    file_format=str.upper(file_format)
+                ))
+                sys.exit(1)
+
             logging.info("{0} RECORDS INSERTED INTO S3".format(insert_count))
             logging.info("(+) {0}".format(object_name))
-            
+        else:
+            logging.info("NO DATA TO BE INSERTED")
+
     def delete_from_s3(self):
         logging.info("DELETING DATA FROM S3 IF EXISTS...")
         objects_to_delete = {'Objects': []}
@@ -101,16 +117,16 @@ class DataLake():
                 s3.delete_objects(
                     Bucket=self.bucket_name,
                     Delete=objects_to_delete)
-            
+
                 delete_count = len(objects_to_delete["Objects"])
                 logging.info("{0} FILES DELETED FROM S3".format(delete_count))
-                
+
                 for item in objects_to_delete["Objects"]:
                     logging.info("(-) {0}".format(item["Key"]))
             else:
                 logging.info("NO FILES TO BE DELETED FROM S3")
 
-    def read_from_s3(self):
+    def read_from_s3(self, file_format: str) -> pandas.DataFrame:
         logging.info("READING DATA FROM S3...")
         try:
             s3 = self.session.client('s3')
@@ -121,22 +137,43 @@ class DataLake():
             raise
         else:
             if objects.get('Contents') is not None:
-                data = []
-                for object in objects.get('Contents'):
-                    logging.info(object.get('Key'))
+                if file_format == "json":
+                    data = pandas.DataFrame()
+                    for object in objects.get('Contents'):
+                        logging.info(object.get('Key'))
+                        
+                        file_data = pandas.read_json(
+                            path_or_buf="s3://{bucket}/{object}".format(
+                                bucket=self.bucket_name,
+                                object=object.get("Key"),
+                            ),
+                            orient="records",
+                            lines=True,
+                            compression="infer",
+                            storage_options=None if self.session.profile_name is None else {
+                                "profile": self.session.profile_name}
+                        )
+                        data = pandas.concat([data, file_data])
 
-                    content = s3.get_object(
-                        Bucket=self.bucket_name,
-                        Key=object.get('Key'))
-                    # content = content['Body'].read().splitlines()
-                    content = gzip.decompress(content['Body'].read()).splitlines()
-                    
-                    for line in content:
-                        data += (json.loads(line.decode("utf-8")),)
-                
+                elif file_format == "parquet":
+                    data = pandas.read_parquet(
+                        path="s3://{bucket}/{object}".format(
+                            bucket=self.bucket_name,
+                            object=self.object_name_prefix,
+                        ),
+                        storage_options=None if self.session.profile_name is None else {
+                            "profile": self.session.profile_name}
+                    )
+
+                else:
+                    logging.error("FILE FORMAT {file_format} NOT SUPPORTED".format(
+                        file_format=str.upper(file_format)
+                    ))
+                    sys.exit(1)
+
                 read_count = len(data)
                 logging.info("{0} RECORDS READ FROM S3".format(read_count))
                 return data
             else:
-                logging.info("NO DATA WAS FOUND ON S3. ABORTING...")
-                sys.exit(0)
+                logging.info("NO DATA WAS FOUND ON S3")
+                return None
