@@ -21,33 +21,11 @@ Convert list of dictionaries...
 
 ...or to Apache Parquet compressed as GZIP
 
-Manipulate data on Amazon S3 bucket based on schema, table and partitions
-```
-motor_vehicles/
-`-- cars
-    |-- brand=Ford
-    |   `-- year=1965
-    |       `-- 34e40fce-444e-11ed-8e00-acde48001122.json
-    |-- brand=Pontiac
-    |   `-- year=1964
-    |       `-- a4eb3018-4458-11ed-b0e9-acde48001122.json
-    `-- brand=Lamborghini
-        `-- year=1966
-            `-- 2c0fea6c-444e-11ed-969f-acde48001122.json
-```
-
-
 
 ## How to use
-This package does not slice data into partitions defined. You must handle slicing of data to write into partitions desired.
-The example below will assume the following file structure:
-```
-motor_vehicles/
-`-- cars
-    `-- decade=1960s
-        `-- 2c0fea6c-444e-11ed-969f-acde48001122.json.gzip
-```
+This package does not slice data into partitions at the moment. You must handle slicing of data to write into partitions desired.
 
+Check this example below:
 ```python
 from datalake_utils.utils import DataLake
 import pandas
@@ -83,10 +61,24 @@ datalake = DataLake(
 )
 
 datalake.append_to_s3(data=pandas.DataFrame(data), file_format="json")
+```
 
+It will create an object into Amazon S3 with the following structure:
+```
+motor_vehicles/
+`-- cars/
+    `-- decade=1960s/
+        `-- 2c0fea6c-444e-11ed-969f-acde48001122.json.gz
+```
+
+To read all files from partition, do:
+```python
 retrieved_data = datalake.read_from_s3(file_format="json")
-print(retrieved_data)
+```
+`retrieved_data` is a Pandas DataFrame object. It is not possible to read a specific file using this function.
 
+
+To delete all files from partition, do:
+```python
 datalake.delete_from_s3()
-
 ```
