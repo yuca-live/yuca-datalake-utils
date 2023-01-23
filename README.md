@@ -20,6 +20,7 @@ Convert list of dictionaries...
 ```
 
 ...or to Apache Parquet compressed as GZIP
+
 Manipulate data on Amazon S3 bucket based on schema, table and partitions
 ```
 motor_vehicles/
