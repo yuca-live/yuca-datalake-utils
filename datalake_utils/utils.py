@@ -60,8 +60,7 @@ class DataLake():
         return object_name_prefix
 
     def append_to_s3(self, data: pandas.DataFrame, file_format: str):
-        insert_count = len(data)
-        if insert_count > 0:
+        if data is not None:
             logging.info("INSERTING DATA INTO S3...")
             if file_format == "json":
                 object_name = self.object_name_prefix + \
@@ -74,8 +73,6 @@ class DataLake():
                     orient="records",
                     lines=True,
                     compression="gzip",
-                    storage_options=None if self.session.profile_name is None else {
-                        "profile": self.session.profile_name}
                 )
             elif file_format == "parquet":
                 object_name = self.object_name_prefix + \
@@ -86,8 +83,6 @@ class DataLake():
                         object_name=object_name,
                     ),
                     compression='gzip',
-                    storage_options=None if self.session.profile_name is None else {
-                        "profile": self.session.profile_name}
                 )
             else:
                 logging.error("FILE FORMAT {file_format} NOT SUPPORTED".format(
@@ -95,6 +90,7 @@ class DataLake():
                 ))
                 sys.exit(1)
 
+            insert_count = len(data)
             logging.info("{0} RECORDS INSERTED INTO S3".format(insert_count))
             logging.info("(+) {0}".format(object_name))
         else:
@@ -149,9 +145,7 @@ class DataLake():
                             ),
                             orient="records",
                             lines=True,
-                            compression="infer",
-                            storage_options=None if self.session.profile_name is None else {
-                                "profile": self.session.profile_name}
+                            compression="gzip" if ".gzip" in object.get('Key') else "infer",
                         )
                         data = pandas.concat([data, file_data])
 
@@ -161,8 +155,6 @@ class DataLake():
                             bucket=self.bucket_name,
                             object=self.object_name_prefix,
                         ),
-                        storage_options=None if self.session.profile_name is None else {
-                            "profile": self.session.profile_name}
                     )
 
                 else:

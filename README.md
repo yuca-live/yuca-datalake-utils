@@ -2,7 +2,7 @@
 Package to manipulate data from/into Amazon S3 using partitions compatible with Apache Hadoop filesystem.
 At this moment, this package was conceived to handle JSON and Parquet formats. That being said, it expects a Pandas DataFrame.
 
-Data will be written into Amazon S3 as a multi-line JSON string, compressed as GZIP.
+Data will be written into Amazon S3 as a multi-line JSON or Apache Parquet, compressed as GZIP.
 ## Features
 Convert list of dictionaries...
 ```python
@@ -12,13 +12,14 @@ Convert list of dictionaries...
     {"brand": "Lamborghini","model": "Miura","year": 1966}
 ]
 ```
-...to multi-line JSON string
+...to multi-line JSON compressed as GZIP
 ```text
 {"brand": "Ford","model": "Mustang","year": 1965}
 {"brand": "Pontiac","model": "GTO","year": 1964}
 {"brand": "Lamborghini","model": "Miura","year": 1966}
 ```
 
+...or to Apache Parquet compressed as GZIP
 Manipulate data on Amazon S3 bucket based on schema, table and partitions
 ```
 motor_vehicles/

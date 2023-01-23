@@ -14,10 +14,10 @@ with open("README.md", "r") as fh:
 
 setup(
     name='datalake_utils',
-    version='2.0.3',
+    version='2.1.0',
     description="Manipulate data on Amazon S3 using Apache Hadoop filesystem compability",
     packages=["datalake_utils"],
-    install_requires=['boto3','pandas','fsspec','s3fs'],
+    install_requires=['boto3','pandas','pyarrow','fsspec','s3fs'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Libraries :: Python Modules",
