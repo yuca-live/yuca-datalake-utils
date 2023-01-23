@@ -1,5 +1,0 @@
-boto3
-pandas
-fsspec
-s3fs
-twine

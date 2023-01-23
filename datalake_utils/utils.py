@@ -1,11 +1,10 @@
+import uuid
+import pandas
+import boto3
+import sys
 import logging
 logging.basicConfig(level=logging.INFO)
 
-import sys
-import pathlib
-import boto3
-import pandas
-import uuid
 
 class DataLake():
     """
@@ -39,6 +38,7 @@ class DataLake():
         else:
             self.session = boto3.Session(profile_name=profile_name)
 
+        self.profile_name = profile_name
         self.bucket_name = bucket_name
         self.schema = schema
         self.table = table
@@ -73,6 +73,8 @@ class DataLake():
                     orient="records",
                     lines=True,
                     compression="gzip",
+                    storage_options=None if self.profile_name is None else {
+                        "profile": self.session.profile_name}
                 )
             elif file_format == "parquet":
                 object_name = self.object_name_prefix + \
@@ -83,6 +85,8 @@ class DataLake():
                         object_name=object_name,
                     ),
                     compression='gzip',
+                    storage_options=None if self.profile_name is None else {
+                        "profile": self.session.profile_name}
                 )
             else:
                 logging.error("FILE FORMAT {file_format} NOT SUPPORTED".format(
@@ -136,8 +140,6 @@ class DataLake():
                 if file_format == "json":
                     data = pandas.DataFrame()
                     for object in objects.get('Contents'):
-                        logging.info(object.get('Key'))
-                        
                         file_data = pandas.read_json(
                             path_or_buf="s3://{bucket}/{object}".format(
                                 bucket=self.bucket_name,
@@ -145,7 +147,10 @@ class DataLake():
                             ),
                             orient="records",
                             lines=True,
-                            compression="gzip" if ".gzip" in object.get('Key') else "infer",
+                            compression="gzip" if ".gzip" in object.get(
+                                'Key') else "infer",
+                            storage_options=None if self.profile_name is None else {
+                                "profile": self.session.profile_name}
                         )
                         data = pandas.concat([data, file_data])
 
@@ -155,6 +160,8 @@ class DataLake():
                             bucket=self.bucket_name,
                             object=self.object_name_prefix,
                         ),
+                        storage_options=None if self.profile_name is None else {
+                            "profile": self.session.profile_name}
                     )
 
                 else:
