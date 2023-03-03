@@ -78,6 +78,12 @@ retrieved_data = datalake.read_from_s3(file_format="json")
 `retrieved_data` is a Pandas DataFrame object. It is not possible to read a specific file using this function.
 
 
+To convert a Pandas DataFrame into a list of tuples containing a single JSON:
+```python
+datalake.df_to_tuples(data=retrieved_data)
+```
+
+
 To delete all files from partition, do:
 ```python
 datalake.delete_from_s3()

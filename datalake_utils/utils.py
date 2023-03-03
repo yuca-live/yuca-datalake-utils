@@ -1,6 +1,7 @@
 import uuid
 import pandas
 import boto3
+import json
 import sys
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +61,7 @@ class DataLake():
         return object_name_prefix
 
     def append_to_s3(self, data: pandas.DataFrame, file_format: str):
-        if data is not None:
+        if not data.empty:
             logging.info("INSERTING DATA INTO S3...")
             if file_format == "json":
                 object_name = self.object_name_prefix + \
@@ -172,7 +173,18 @@ class DataLake():
 
                 read_count = len(data)
                 logging.info("{0} RECORDS READ FROM S3".format(read_count))
+                data = json.loads(data.to_json(orient="records"))
+                argslist = [ (json.dumps(x),) for x in data ]
                 return data
             else:
                 logging.info("NO DATA WAS FOUND ON S3")
                 return None
+    
+    def df_to_tuples(data: pandas.DataFrame) -> list:
+        if not data.empty:
+            json_lst = json.loads(data.to_json(orient="records"))
+            tup_lst = [ (json.dumps(x),) for x in json_lst ]
+            
+            return tup_lst
+        else:
+            logging.info("EMPTY DATAFRAME")
