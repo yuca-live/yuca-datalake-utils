@@ -14,7 +14,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "datalake_utils"
-version = "2.2.0"
+version = "2.2.1"
 authors = [
   {name="Luis Roberto de Oliveira Moro", email="luis.moro@yuca.live"},
 ]
